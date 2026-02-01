@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         NB(化学)实验脚本
+// @name         NB(化学)实验室脚本
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  破解Nobook化学实验室vip器械，使一些隐藏的器械显示

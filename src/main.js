@@ -154,10 +154,12 @@ function renderFiles(items) {
     const icon = item.isDirectory ? icons.folder : icons.file;
     
     if (item.isDirectory) {
+      // Display name with description in parentheses for folders
+      const displayName = item.description ? `${item.name} (${item.description})` : item.name;
       return `
         <div class="file-item" onclick="navigateTo('${path}')">
           <span class="file-icon">${icon}</span>
-          <span class="file-name">${item.name}</span>
+          <span class="file-name">${displayName}</span>
           <span class="file-size">—</span>
           <span class="file-date">${formatDate(item.modified)}</span>
         </div>
