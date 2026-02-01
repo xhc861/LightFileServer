@@ -1,3 +1,4 @@
 node_modules
 dist
 .vercel
+DEPLOYMENT_GUIDE.md
