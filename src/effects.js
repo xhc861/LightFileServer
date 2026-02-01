@@ -173,8 +173,6 @@ export function initWaves(colors = ['#4579e2', '#3461c1', '#2d55aa']) {
     </div>
   `;
   
-  const footer = document.querySelector('.footer');
-  if (footer) {
-    footer.insertAdjacentHTML('beforebegin', wavesHTML);
-  }
+  // Insert at the end of body, before scripts
+  document.body.insertAdjacentHTML('beforeend', wavesHTML);
 }
