@@ -1,5 +1,6 @@
 import { normalize, join } from 'path';
 import { existsSync, statSync, readdirSync } from 'fs';
+import { execSync } from 'child_process';
 
 export default async function handler(req, res) {
   // CORS headers
@@ -26,6 +27,23 @@ export default async function handler(req, res) {
       return normalized;
     }
 
+    function getGitModifiedTime(filePath) {
+      try {
+        // Get the last commit time for this file
+        const timestamp = execSync(
+          `git log -1 --format=%ct -- "${filePath}"`,
+          { encoding: 'utf-8', cwd: process.cwd() }
+        ).trim();
+        
+        if (timestamp) {
+          return new Date(parseInt(timestamp) * 1000);
+        }
+      } catch (err) {
+        // If git command fails, fall back to file system time
+      }
+      return null;
+    }
+
     const fullPath = safePath(path);
     
     if (!existsSync(fullPath)) {
@@ -46,11 +64,16 @@ export default async function handler(req, res) {
     const items = readdirSync(fullPath).map(name => {
       const itemPath = join(fullPath, name);
       const itemStats = statSync(itemPath);
+      
+      // Try to get Git commit time, fall back to file system time
+      const gitTime = getGitModifiedTime(itemPath);
+      const modified = gitTime || itemStats.mtime;
+      
       return {
         name,
         isDirectory: itemStats.isDirectory(),
         size: itemStats.size,
-        modified: itemStats.mtime
+        modified: modified
       };
     });
 
