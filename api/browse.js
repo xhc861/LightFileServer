@@ -15,31 +15,8 @@ export default async function handler(req, res) {
   const { path = '' } = req.query;
   
   try {
-    // Try multiple possible paths for Vercel deployment
-    let STORAGE_DIR;
-    const possiblePaths = [
-      join(process.cwd(), 'public', 'files'),
-      join('/var/task', 'public', 'files'),
-      join(process.cwd(), '.vercel', 'output', 'static', 'files'),
-      '/tmp/files'
-    ];
-    
-    for (const testPath of possiblePaths) {
-      if (existsSync(testPath)) {
-        STORAGE_DIR = testPath;
-        break;
-      }
-    }
-    
-    if (!STORAGE_DIR) {
-      console.error('Storage directory not found. Tried:', possiblePaths);
-      res.status(500).json({ 
-        error: 'Storage directory not found',
-        cwd: process.cwd(),
-        tried: possiblePaths
-      });
-      return;
-    }
+    // For Vercel, files should be in the root public directory
+    const STORAGE_DIR = join(process.cwd(), 'public', 'files');
 
     function safePath(requestPath) {
       const normalized = normalize(join(STORAGE_DIR, requestPath || ''));

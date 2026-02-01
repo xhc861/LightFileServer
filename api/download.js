@@ -1,5 +1,5 @@
 import { normalize, join } from 'path';
-import { existsSync, statSync, createReadStream, mkdirSync } from 'fs';
+import { existsSync, statSync, createReadStream } from 'fs';
 
 export default async function handler(req, res) {
   // CORS headers
@@ -14,23 +14,18 @@ export default async function handler(req, res) {
 
   const { path = '' } = req.query;
   
-  // Use public/files directory which will be included in deployment
-  const STORAGE_DIR = join(process.cwd(), 'public', 'files');
-  
-  // Ensure storage directory exists
-  if (!existsSync(STORAGE_DIR)) {
-    mkdirSync(STORAGE_DIR, { recursive: true });
-  }
-
-  function safePath(requestPath) {
-    const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
-    if (!normalized.startsWith(STORAGE_DIR)) {
-      throw new Error('Invalid path');
-    }
-    return normalized;
-  }
-
   try {
+    // For Vercel, files should be in the root public directory
+    const STORAGE_DIR = join(process.cwd(), 'public', 'files');
+
+    function safePath(requestPath) {
+      const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
+      if (!normalized.startsWith(STORAGE_DIR)) {
+        throw new Error('Invalid path');
+      }
+      return normalized;
+    }
+
     const fullPath = safePath(path);
     
     if (!existsSync(fullPath)) {
