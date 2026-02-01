@@ -70,14 +70,14 @@ function t(key) {
 
 function updateUI() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.dataset.i18n);
+    const key = el.dataset.i18n;
+    if (key === 'footer') {
+      // Special handling for footer to preserve the link
+      el.childNodes[0].textContent = t(key) + ' ';
+    } else {
+      el.textContent = t(key);
+    }
   });
-  
-  // Update footer text
-  const footerText = document.querySelector('.footer p:last-child');
-  if (footerText) {
-    footerText.innerHTML = `${t('footer')} <a href="https://xhc861.top" target="_blank">(xhc861.top)</a>`;
-  }
 }
 
 function setLanguage(lang) {

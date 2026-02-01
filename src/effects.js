@@ -113,32 +113,33 @@ export function initPetals(count = 30) {
 export function initLanterns(texts = ['新', '年', '快', '乐']) {
   const container = document.createElement('div');
   container.className = 'lanterns-container';
+  // 调整顺序：左边第二个、左边第一个、右边第二个、右边第一个
   container.innerHTML = `
     <div class="deng-box2">
-      <div class="deng">
-        <div class="xian"></div>
-        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[0]}</div></div></div>
-        <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
-      </div>
-    </div>
-    <div class="deng-box3">
       <div class="deng">
         <div class="xian"></div>
         <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[1]}</div></div></div>
         <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
       </div>
     </div>
+    <div class="deng-box3">
+      <div class="deng">
+        <div class="xian"></div>
+        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[0]}</div></div></div>
+        <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+      </div>
+    </div>
     <div class="deng-box1">
       <div class="deng">
         <div class="xian"></div>
-        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[2]}</div></div></div>
+        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[3]}</div></div></div>
         <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
       </div>
     </div>
     <div class="deng-box">
       <div class="deng">
         <div class="xian"></div>
-        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[3]}</div></div></div>
+        <div class="deng-a"><div class="deng-b"><div class="deng-t">${texts[2]}</div></div></div>
         <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
       </div>
     </div>
