@@ -2,7 +2,7 @@ import { initPetals, initLanterns, initSnow, initWaves } from './effects.js';
 
 const translations = {
   en: {
-    title: "xhc861's File Server",
+    title: "xhc861's Micro File Server",
     'warning-title': 'Notice:',
     'warning-text': 'This system is designed for small files only (JS, CSS, JSON, etc.). Large files may experience slow download speeds.',
     home: 'Home',
@@ -19,7 +19,7 @@ const translations = {
     footer: 'Welcome to visit my personal website'
   },
   zh: {
-    title: 'xhc861 的文件服务器',
+    title: "xhc861's 微文件服务器",
     'warning-title': '注意：',
     'warning-text': '本系统仅用于存储小文件（JS、CSS、JSON等）。大文件可能会导致下载速度变慢。',
     home: '首页',
@@ -36,7 +36,7 @@ const translations = {
     footer: '欢迎访问个人网站'
   },
   ja: {
-    title: 'xhc861 のファイルサーバー',
+    title: 'xhc861 のマイクロファイルサーバー',
     'warning-title': '注意：',
     'warning-text': 'このシステムは小さなファイル（JS、CSS、JSONなど）専用です。大きなファイルはダウンロード速度が遅くなる可能性があります。',
     home: 'ホーム',

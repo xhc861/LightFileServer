@@ -2,6 +2,9 @@
   "NB-crack": {
     "description": "NB实验室破解脚本"
   },
+  "VSL-Preset": {
+    "description": "VSL音源预设文件"
+  },
   "NB-crack/nb-script-v1.js": {
     "modified": "2025-02-01T18:50:02Z",
     "description": "解锁(化学)学科VIP，不支持自定义--不需要登录"
@@ -13,5 +16,17 @@
   "NB-crack/nb-script-update.js": {
     "modified": "2026-02-01T19:00:00Z",
     "description": "一次导入，永久同步更新，目前版本v2.0"
+  },
+  "VSL-Preset/animenz.vsynpreset": {
+    "modified": "2026-02-01T19:31:09Z",
+    "description": "Piano by sf group"
+  },
+  "VSL-Preset/CHBF.vsynpreset": {
+    "modified": "2026-02-01T19:31:09Z",
+    "description": "Piano by 春花彼方@bilibili"
+  },
+  "VSL-Preset/SkyBlue.vsynpreset": {
+    "modified": "2026-02-01T19:31:09Z",
+    "description": "Piano by sf group"
   }
 }
