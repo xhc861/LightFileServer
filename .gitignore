@@ -1,0 +1,5 @@
+node_modules
+dist
+.vercel
+uploads
+file-storage

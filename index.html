@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件服务器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { 
+      font-size: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+    .lang-switch {
+      display: flex;
+      gap: 5px;
+    }
+    .lang-btn {
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      background: white;
+      color: #666;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .lang-btn:hover { background: #f5f5f5; }
+    .lang-btn.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 3px solid #ffc107;
+      padding: 10px 15px;
+      margin: 15px 20px;
+      font-size: 13px;
+      color: #856404;
+    }
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .breadcrumb {
+      background: white;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .breadcrumb a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { color: #999; }
+    .file-list {
+      background: white;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .file-item:hover { background: #f8f9fa; }
+    .file-item:last-child { border-bottom: none; }
+    .file-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .file-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .file-item .file-icon {
+      color: #666;
+    }
+    .file-item:hover .file-icon {
+      color: #007bff;
+    }
+    .file-name { 
+      flex: 1;
+      font-size: 14px;
+      color: #333;
+    }
+    .file-name a {
+      color: #333;
+      text-decoration: none;
+    }
+    .file-name a:hover { color: #007bff; }
+    .file-size {
+      color: #999;
+      font-size: 13px;
+      margin-right: 15px;
+      min-width: 80px;
+      text-align: right;
+    }
+    .file-date {
+      color: #999;
+      font-size: 13px;
+      min-width: 150px;
+    }
+    .download-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      border-radius: 3px;
+      border: 1px solid #007bff;
+      background: white;
+      color: #007bff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      background: #007bff;
+      color: white;
+    }
+    .copy-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      border-radius: 3px;
+      border: 1px solid #28a745;
+      background: white;
+      color: #28a745;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-right: 8px;
+    }
+    .copy-btn:hover {
+      background: #28a745;
+      color: white;
+    }
+    .file-actions {
+      display: flex;
+      gap: 0;
+    }
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #333;
+      margin: 0;
+      word-break: break-all;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .modal-close:hover {
+      color: #333;
+    }
+    .file-info {
+      margin-bottom: 20px;
+    }
+    .info-row {
+      display: flex;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 500;
+      color: #666;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .info-value {
+      color: #333;
+      word-break: break-all;
+      flex: 1;
+    }
+    .info-value.loading {
+      color: #999;
+      font-style: italic;
+    }
+    .modal-download-btn {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-download-btn:hover {
+      background: #0056b3;
+    }
+    .modal-copy-btn {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #28a745;
+      border: 1px solid #28a745;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+    .modal-copy-btn:hover {
+      background: #28a745;
+      color: white;
+    }
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #999;
+      font-size: 13px;
+      margin-top: 40px;
+    }
+    .footer a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 2000;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 data-i18n="title">File Server</h1>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn active" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="ja">日本語</button>
+    </div>
+  </div>
+
+  <div class="warning">
+    <strong data-i18n="warning-title">Notice:</strong>
+    <span data-i18n="warning-text">This system is designed for small files only (JS, CSS, JSON, etc.). Large files may experience slow download speeds.</span>
+  </div>
+  
+  <div class="container">
+    <div class="breadcrumb" id="breadcrumb"></div>
+    
+    <div class="file-list" id="filesList"></div>
+  </div>
+
+  <div class="modal" id="fileModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalFileName"></h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="file-info" id="fileInfo"></div>
+      <button class="modal-copy-btn" onclick="copyFromModal()">
+        <span data-i18n="copyLink">复制链接</span>
+      </button>
+      <button class="modal-download-btn" onclick="downloadFromModal()">
+        <span data-i18n="download">下载</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2026 xhc861. All rights reserved.</p>
+    <p><a href="https://xhc861.top" target="_blank">Official Website</a></p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
