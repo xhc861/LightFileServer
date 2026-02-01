@@ -14,8 +14,8 @@ export default async function handler(req, res) {
 
   const { path = '' } = req.query;
   
-  // Storage directory - use /tmp for Vercel
-  const STORAGE_DIR = process.env.VERCEL ? '/tmp/files' : join(process.cwd(), 'public', 'files');
+  // Use public/files directory which will be included in deployment
+  const STORAGE_DIR = join(process.cwd(), 'public', 'files');
   
   // Ensure storage directory exists
   if (!existsSync(STORAGE_DIR)) {
