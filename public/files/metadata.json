@@ -1,10 +1,10 @@
 {
-  "README.md": {
-    "modified": "2025-02-01T08:00:00Z",
-    "description": "文件存储目录说明文档"
+  "NB-crack/nb-script-v1.txt": {
+    "modified": "2025-02-01T18:50:02Z",
+    "description": "解锁(化学)学科VIP，不支持自定义--不需要登录"
   },
   "NB-crack/nb-script-v2.txt": {
-    "modified": "2026-02-01T08:00:00Z",
-    "description": "解锁全部学科VIP--需要手机号登录"
+    "modified": "2026-02-01T18:23:36Z",
+    "description": "解锁(全部)学科VIP，支持自造器械和药品--需要登录"
   }
 }
