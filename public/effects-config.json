@@ -1,0 +1,18 @@
+{
+  "lanterns": {
+    "enabled": false,
+    "text": ["新", "年", "快", "乐"]
+  },
+  "petals": {
+    "enabled": true,
+    "count": 30
+  },
+  "snow": {
+    "enabled": false,
+    "color": "#cccccc"
+  },
+  "waves": {
+    "enabled": true,
+    "colors": ["#4579e2", "#3461c1", "#2d55aa"]
+  }
+}

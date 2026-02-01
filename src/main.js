@@ -1,4 +1,4 @@
-import { initPetals } from './petals.js';
+import { initPetals, initLanterns, initSnow, initWaves } from './effects.js';
 
 const translations = {
   en: {
@@ -15,7 +15,8 @@ const translations = {
     calculating: 'Calculating...',
     copyLink: 'Copy Link',
     linkCopied: 'Link copied!',
-    description: 'Description'
+    description: 'Description',
+    footer: 'Welcome to visit my personal website'
   },
   zh: {
     title: 'xhc861 的文件服务器',
@@ -31,7 +32,8 @@ const translations = {
     calculating: '计算中...',
     copyLink: '复制链接',
     linkCopied: '链接已复制！',
-    description: '描述'
+    description: '描述',
+    footer: '欢迎访问个人网站'
   },
   ja: {
     title: 'xhc861 のファイルサーバー',
@@ -47,7 +49,8 @@ const translations = {
     calculating: '計算中...',
     copyLink: 'リンクをコピー',
     linkCopied: 'リンクをコピーしました！',
-    description: '説明'
+    description: '説明',
+    footer: '個人サイトへようこそ'
   }
 };
 
@@ -69,6 +72,12 @@ function updateUI() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
+  
+  // Update footer text
+  const footerText = document.querySelector('.footer p:last-child');
+  if (footerText) {
+    footerText.innerHTML = `${t('footer')} <a href="https://xhc861.top" target="_blank">(xhc861.top)</a>`;
+  }
 }
 
 function setLanguage(lang) {
@@ -318,4 +327,22 @@ window.copyFromModal = copyFromModal;
 // Initialize
 updateUI();
 loadDirectory();
-initPetals();
+
+// Load effects configuration and initialize
+fetch('/effects-config.json')
+  .then(res => res.json())
+  .then(config => {
+    if (config.petals?.enabled) {
+      initPetals(config.petals.count || 30);
+    }
+    if (config.lanterns?.enabled) {
+      initLanterns(config.lanterns.text);
+    }
+    if (config.snow?.enabled) {
+      initSnow(config.snow.color);
+    }
+    if (config.waves?.enabled) {
+      initWaves(config.waves.colors);
+    }
+  })
+  .catch(err => console.error('Failed to load effects config:', err));
