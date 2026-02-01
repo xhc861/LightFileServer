@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         NB实验破解器
+// @name         NB实验室(全科解锁)脚本
 // @namespace    http://tampermonkey.net/
-// @version      4.2
+// @version      2.0
 // @description  破解NoBook物理、化学实验室
 // @author       zl930, ApPerson
 // @match        https://hx.nobook.com/*
