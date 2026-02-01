@@ -12,7 +12,8 @@ const translations = {
     sha256: 'SHA-256',
     calculating: 'Calculating...',
     copyLink: 'Copy Link',
-    linkCopied: 'Link copied!'
+    linkCopied: 'Link copied!',
+    description: 'Description'
   },
   zh: {
     title: '文件服务器',
@@ -27,7 +28,8 @@ const translations = {
     sha256: 'SHA-256',
     calculating: '计算中...',
     copyLink: '复制链接',
-    linkCopied: '链接已复制！'
+    linkCopied: '链接已复制！',
+    description: '描述'
   },
   ja: {
     title: 'ファイルサーバー',
@@ -42,7 +44,8 @@ const translations = {
     sha256: 'SHA-256',
     calculating: '計算中...',
     copyLink: 'リンクをコピー',
-    linkCopied: 'リンクをコピーしました！'
+    linkCopied: 'リンクをコピーしました！',
+    description: '説明'
   }
 };
 
@@ -149,11 +152,17 @@ function renderFiles(items) {
         </div>
       `;
     } else {
-      const itemJson = JSON.stringify({name: item.name, size: item.size, modified: item.modified, path: path}).replace(/"/g, '&quot;');
+      const itemJson = JSON.stringify({
+        name: item.name, 
+        size: item.size, 
+        modified: item.modified, 
+        path: path,
+        description: item.description
+      }).replace(/"/g, '&quot;');
       return `
         <div class="file-item" onclick="showFileModal(${itemJson})">
           <span class="file-icon">${icon}</span>
-          <span class="file-name">${item.name}</span>
+          <span class="file-name">${item.name}${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}</span>
           <span class="file-size">${formatSize(item.size)}</span>
           <span class="file-date">${formatDate(item.modified)}</span>
           <div class="file-actions">
@@ -184,11 +193,23 @@ function showFileModal(fileInfo) {
   currentFileForModal = fileInfo;
   
   document.getElementById('modalFileName').textContent = fileInfo.name;
-  document.getElementById('fileInfo').innerHTML = `
+  
+  let infoHTML = `
     <div class="info-row">
       <div class="info-label">${t('fileName')}:</div>
       <div class="info-value">${fileInfo.name}</div>
-    </div>
+    </div>`;
+  
+  // Add description if available
+  if (fileInfo.description) {
+    infoHTML += `
+    <div class="info-row">
+      <div class="info-label">${t('description')}:</div>
+      <div class="info-value">${fileInfo.description}</div>
+    </div>`;
+  }
+  
+  infoHTML += `
     <div class="info-row">
       <div class="info-label">${t('fileSize')}:</div>
       <div class="info-value">${formatSize(fileInfo.size)}</div>
@@ -203,6 +224,7 @@ function showFileModal(fileInfo) {
     </div>
   `;
   
+  document.getElementById('fileInfo').innerHTML = infoHTML;
   document.getElementById('fileModal').classList.add('show');
   
   // Calculate SHA256 asynchronously

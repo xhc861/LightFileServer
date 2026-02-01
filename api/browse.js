@@ -1,5 +1,5 @@
 import { normalize, join } from 'path';
-import { existsSync, statSync, readdirSync } from 'fs';
+import { existsSync, statSync, readdirSync, readFileSync } from 'fs';
 
 export default async function handler(req, res) {
   // CORS headers
@@ -17,6 +17,18 @@ export default async function handler(req, res) {
   try {
     // For Vercel, files should be in the root public directory
     const STORAGE_DIR = join(process.cwd(), 'public', 'files');
+    const METADATA_FILE = join(STORAGE_DIR, 'metadata.json');
+
+    // Load metadata
+    let metadata = {};
+    try {
+      if (existsSync(METADATA_FILE)) {
+        const metadataContent = readFileSync(METADATA_FILE, 'utf-8');
+        metadata = JSON.parse(metadataContent);
+      }
+    } catch (err) {
+      console.error('Failed to load metadata:', err);
+    }
 
     function safePath(requestPath) {
       const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
@@ -24,6 +36,12 @@ export default async function handler(req, res) {
         throw new Error('Invalid path');
       }
       return normalized;
+    }
+
+    function getFileMetadata(fileName, relativePath) {
+      // Try to find metadata by relative path first, then by filename
+      const fullKey = relativePath ? `${relativePath}/${fileName}` : fileName;
+      return metadata[fullKey] || metadata[fileName] || {};
     }
 
     const fullPath = safePath(path);
@@ -43,20 +61,31 @@ export default async function handler(req, res) {
       return;
     }
 
-    const items = readdirSync(fullPath).map(name => {
-      const itemPath = join(fullPath, name);
-      const itemStats = statSync(itemPath);
-      
-      // Use file system mtime
-      // Note: On Vercel, this will be the build time, not the actual file modification time
-      // For accurate times, files should include metadata or use a database
-      return {
-        name,
-        isDirectory: itemStats.isDirectory(),
-        size: itemStats.size,
-        modified: itemStats.mtime
-      };
-    });
+    const items = readdirSync(fullPath)
+      .filter(name => name !== 'metadata.json') // Hide metadata file
+      .map(name => {
+        const itemPath = join(fullPath, name);
+        const itemStats = statSync(itemPath);
+        const fileMeta = getFileMetadata(name, path);
+        
+        // Use metadata time if available, otherwise use file system time
+        let modified = itemStats.mtime;
+        if (fileMeta.modified) {
+          try {
+            modified = new Date(fileMeta.modified);
+          } catch (err) {
+            // Invalid date format, use file system time
+          }
+        }
+        
+        return {
+          name,
+          isDirectory: itemStats.isDirectory(),
+          size: itemStats.size,
+          modified: modified,
+          description: fileMeta.description || null
+        };
+      });
 
     items.sort((a, b) => {
       if (a.isDirectory && !b.isDirectory) return -1;
