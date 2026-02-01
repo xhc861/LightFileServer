@@ -41,6 +41,7 @@ export default async function handler(req, res) {
     function getFileMetadata(fileName, relativePath) {
       // Try to find metadata by relative path first, then by filename
       const fullKey = relativePath ? `${relativePath}/${fileName}` : fileName;
+      console.log('Looking for metadata:', { fileName, relativePath, fullKey, found: metadata[fullKey] || metadata[fileName] });
       return metadata[fullKey] || metadata[fileName] || {};
     }
 

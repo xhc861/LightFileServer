@@ -32,6 +32,24 @@ export default defineConfig({
             const path = url.searchParams.get('path') || '';
             const fullPath = safePath(path);
             
+            // Load metadata
+            const METADATA_FILE = join(STORAGE_DIR, 'metadata.json');
+            let metadata = {};
+            try {
+              if (fs.existsSync(METADATA_FILE)) {
+                const metadataContent = fs.readFileSync(METADATA_FILE, 'utf-8');
+                metadata = JSON.parse(metadataContent);
+              }
+            } catch (err) {
+              console.error('Failed to load metadata:', err);
+            }
+            
+            function getFileMetadata(fileName, relativePath) {
+              const fullKey = relativePath ? `${relativePath}/${fileName}` : fileName;
+              console.log('Looking for metadata:', { fileName, relativePath, fullKey, found: metadata[fullKey] || metadata[fileName] });
+              return metadata[fullKey] || metadata[fileName] || {};
+            }
+            
             if (!fs.existsSync(fullPath)) {
               res.statusCode = 404;
               res.end(JSON.stringify({ error: 'Path not found' }));
@@ -45,16 +63,30 @@ export default defineConfig({
               return;
             }
 
-            const items = fs.readdirSync(fullPath).map(name => {
-              const itemPath = join(fullPath, name);
-              const itemStats = fs.statSync(itemPath);
-              return {
-                name,
-                isDirectory: itemStats.isDirectory(),
-                size: itemStats.size,
-                modified: itemStats.mtime
-              };
-            });
+            const items = fs.readdirSync(fullPath)
+              .filter(name => name !== 'metadata.json')
+              .map(name => {
+                const itemPath = join(fullPath, name);
+                const itemStats = fs.statSync(itemPath);
+                const fileMeta = getFileMetadata(name, path);
+                
+                let modified = itemStats.mtime;
+                if (fileMeta.modified) {
+                  try {
+                    modified = new Date(fileMeta.modified);
+                  } catch (err) {
+                    // Invalid date format, use file system time
+                  }
+                }
+                
+                return {
+                  name,
+                  isDirectory: itemStats.isDirectory(),
+                  size: itemStats.size,
+                  modified: modified,
+                  description: fileMeta.description || null
+                };
+              });
 
             items.sort((a, b) => {
               if (a.isDirectory && !b.isDirectory) return -1;
