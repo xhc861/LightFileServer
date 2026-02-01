@@ -113,8 +113,14 @@ async function loadDirectory(path = '') {
     const res = await fetch(`/api/browse?path=${encodeURIComponent(path)}`);
     const data = await res.json();
     
+    if (!res.ok || data.error) {
+      console.error('API error:', data);
+      document.getElementById('filesList').innerHTML = `<div class="empty">Error: ${data.error || 'Failed to load directory'}</div>`;
+      return;
+    }
+    
     renderBreadcrumb(path);
-    renderFiles(data.items);
+    renderFiles(data.items || []);
   } catch (err) {
     console.error('Failed to load directory:', err);
     document.getElementById('filesList').innerHTML = '<div class="empty">Failed to load directory</div>';
