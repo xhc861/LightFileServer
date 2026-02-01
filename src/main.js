@@ -138,7 +138,7 @@ function renderFiles(items) {
     return;
   }
   
-  list.innerHTML = items.map(item => {
+  list.innerHTML = items.map((item, index) => {
     const path = currentPath ? `${currentPath}/${item.name}` : item.name;
     const icon = item.isDirectory ? icons.folder : icons.file;
     
@@ -152,15 +152,18 @@ function renderFiles(items) {
         </div>
       `;
     } else {
-      const itemJson = JSON.stringify({
-        name: item.name, 
-        size: item.size, 
-        modified: item.modified, 
+      // Store item data in a global array to avoid JSON escaping issues
+      if (!window.fileItems) window.fileItems = [];
+      window.fileItems[index] = {
+        name: item.name,
+        size: item.size,
+        modified: item.modified,
         path: path,
         description: item.description
-      }).replace(/"/g, '&quot;');
+      };
+      
       return `
-        <div class="file-item" onclick="showFileModal(${itemJson})">
+        <div class="file-item" onclick="showFileModalByIndex(${index})">
           <span class="file-icon">${icon}</span>
           <span class="file-name">${item.name}${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}</span>
           <span class="file-size">${formatSize(item.size)}</span>
@@ -173,6 +176,12 @@ function renderFiles(items) {
       `;
     }
   }).join('');
+}
+
+function showFileModalByIndex(index) {
+  if (window.fileItems && window.fileItems[index]) {
+    showFileModal(window.fileItems[index]);
+  }
 }
 
 async function calculateSHA256(path) {
@@ -299,6 +308,7 @@ window.navigateTo = navigateTo;
 window.downloadFile = downloadFile;
 window.copyFileLink = copyFileLink;
 window.showFileModal = showFileModal;
+window.showFileModalByIndex = showFileModalByIndex;
 window.closeModal = closeModal;
 window.downloadFromModal = downloadFromModal;
 window.copyFromModal = copyFromModal;
