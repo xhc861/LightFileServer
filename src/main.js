@@ -1,6 +1,8 @@
+import { initPetals } from './petals.js';
+
 const translations = {
   en: {
-    title: 'File Server',
+    title: "xhc861's File Server",
     'warning-title': 'Notice:',
     'warning-text': 'This system is designed for small files only (JS, CSS, JSON, etc.). Large files may experience slow download speeds.',
     home: 'Home',
@@ -16,7 +18,7 @@ const translations = {
     description: 'Description'
   },
   zh: {
-    title: '文件服务器',
+    title: 'xhc861 的文件服务器',
     'warning-title': '注意：',
     'warning-text': '本系统仅用于存储小文件（JS、CSS、JSON等）。大文件可能会导致下载速度变慢。',
     home: '首页',
@@ -32,7 +34,7 @@ const translations = {
     description: '描述'
   },
   ja: {
-    title: 'ファイルサーバー',
+    title: 'xhc861 のファイルサーバー',
     'warning-title': '注意：',
     'warning-text': 'このシステムは小さなファイル（JS、CSS、JSONなど）専用です。大きなファイルはダウンロード速度が遅くなる可能性があります。',
     home: 'ホーム',
@@ -316,3 +318,4 @@ window.copyFromModal = copyFromModal;
 // Initialize
 updateUI();
 loadDirectory();
+initPetals();

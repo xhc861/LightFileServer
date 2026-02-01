@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>文件服务器</title>
+  <title>xhc861 的文件服务器</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -313,6 +313,15 @@
     .toast.show {
       opacity: 1;
     }
+    #petalCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
@@ -354,8 +363,10 @@
 
   <div class="footer">
     <p>&copy; 2026 xhc861. All rights reserved.</p>
-    <p><a href="https://xhc861.top" target="_blank">Official Website</a></p>
+    <p>欢迎访问 <a href="https://xhc861.top" target="_blank">个人网站</a></p>
   </div>
+
+  <canvas id="petalCanvas"></canvas>
 
   <div class="toast" id="toast"></div>
 
