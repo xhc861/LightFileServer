@@ -1,5 +1,5 @@
 import { normalize, join } from 'path';
-import { existsSync, statSync, readdirSync, mkdirSync } from 'fs';
+import { existsSync, statSync, readdirSync } from 'fs';
 
 export default async function handler(req, res) {
   // CORS headers
@@ -14,27 +14,49 @@ export default async function handler(req, res) {
 
   const { path = '' } = req.query;
   
-  // Use public/files directory which will be included in deployment
-  const STORAGE_DIR = join(process.cwd(), 'public', 'files');
-  
-  // Ensure storage directory exists
-  if (!existsSync(STORAGE_DIR)) {
-    mkdirSync(STORAGE_DIR, { recursive: true });
-  }
-
-  function safePath(requestPath) {
-    const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
-    if (!normalized.startsWith(STORAGE_DIR)) {
-      throw new Error('Invalid path');
-    }
-    return normalized;
-  }
-
   try {
+    // Try multiple possible paths for Vercel deployment
+    let STORAGE_DIR;
+    const possiblePaths = [
+      join(process.cwd(), 'public', 'files'),
+      join('/var/task', 'public', 'files'),
+      join(process.cwd(), '.vercel', 'output', 'static', 'files'),
+      '/tmp/files'
+    ];
+    
+    for (const testPath of possiblePaths) {
+      if (existsSync(testPath)) {
+        STORAGE_DIR = testPath;
+        break;
+      }
+    }
+    
+    if (!STORAGE_DIR) {
+      console.error('Storage directory not found. Tried:', possiblePaths);
+      res.status(500).json({ 
+        error: 'Storage directory not found',
+        cwd: process.cwd(),
+        tried: possiblePaths
+      });
+      return;
+    }
+
+    function safePath(requestPath) {
+      const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
+      if (!normalized.startsWith(STORAGE_DIR)) {
+        throw new Error('Invalid path');
+      }
+      return normalized;
+    }
+
     const fullPath = safePath(path);
     
     if (!existsSync(fullPath)) {
-      res.status(404).json({ error: 'Path not found' });
+      res.status(404).json({ 
+        error: 'Path not found',
+        requestedPath: fullPath,
+        storageDir: STORAGE_DIR
+      });
       return;
     }
 
@@ -64,6 +86,10 @@ export default async function handler(req, res) {
     res.status(200).json({ path, items });
   } catch (err) {
     console.error('Browse error:', err);
-    res.status(500).json({ error: 'Server error: ' + err.message });
+    res.status(500).json({ 
+      error: 'Server error: ' + err.message,
+      stack: err.stack,
+      cwd: process.cwd()
+    });
   }
 }
