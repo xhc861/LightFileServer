@@ -1,7 +1,7 @@
 {
   "lanterns": {
-    "enabled": false,
-    "text": ["年", "新", "乐", "快"]
+    "enabled": true,
+    "text": ["新", "年", "快", "乐"]
   },
   "petals": {
     "enabled": true,
