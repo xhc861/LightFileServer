@@ -97,8 +97,20 @@ function formatSize(bytes) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
-  const date = new Date(dateStr);
-  return date.toLocaleString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'ja' ? 'ja-JP' : 'en-US');
+  // Parse the ISO string manually to avoid timezone conversion
+  // Format: "2026-02-01T19:31:09Z"
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+  if (!match) return '—';
+  
+  const [, year, month, day, hour, minute, second] = match;
+  
+  if (currentLang === 'zh') {
+    return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+  } else if (currentLang === 'ja') {
+    return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+  } else {
+    return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+  }
 }
 
 function renderBreadcrumb(path) {
@@ -162,7 +174,7 @@ function renderFiles(items) {
           <span class="file-icon">${icon}</span>
           <span class="file-name">${displayName}</span>
           <span class="file-size">—</span>
-          <span class="file-date">${formatDate(item.modified)}</span>
+          <span class="file-date"></span>
         </div>
       `;
     } else {
