@@ -69,14 +69,18 @@ export default async function handler(req, res) {
         const itemStats = statSync(itemPath);
         const fileMeta = getFileMetadata(name, path);
         
-        // Use metadata time if available, otherwise use file system time
-        let modified = itemStats.mtime;
+        // ONLY use metadata time, never use file system time
+        let modified;
         if (fileMeta.modified) {
           try {
             modified = new Date(fileMeta.modified);
           } catch (err) {
-            // Invalid date format, use file system time
+            // Invalid date format, use default date
+            modified = new Date('2020-01-01T00:00:00Z');
           }
+        } else {
+          // No metadata, use default date
+          modified = new Date('2020-01-01T00:00:00Z');
         }
         
         return {
