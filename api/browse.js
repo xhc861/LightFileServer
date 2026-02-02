@@ -69,18 +69,12 @@ export default async function handler(req, res) {
         const itemStats = statSync(itemPath);
         const fileMeta = getFileMetadata(name, path);
         
-        // ONLY use metadata time, never use file system time
-        let modified;
-        if (fileMeta.modified) {
-          try {
-            modified = new Date(fileMeta.modified);
-          } catch (err) {
-            // Invalid date format, use default date
-            modified = new Date('2020-01-01T00:00:00Z');
-          }
-        } else {
-          // No metadata, use default date
-          modified = new Date('2020-01-01T00:00:00Z');
+        // For folders, no time display needed
+        // For files, ONLY use metadata time (no timezone conversion)
+        let modified = null;
+        if (!itemStats.isDirectory() && fileMeta.modified) {
+          // Use the exact string from metadata without any conversion
+          modified = fileMeta.modified;
         }
         
         return {

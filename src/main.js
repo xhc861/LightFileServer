@@ -96,6 +96,7 @@ function formatSize(bytes) {
 }
 
 function formatDate(dateStr) {
+  if (!dateStr) return '—';
   const date = new Date(dateStr);
   return date.toLocaleString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'ja' ? 'ja-JP' : 'en-US');
 }
