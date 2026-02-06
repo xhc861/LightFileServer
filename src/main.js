@@ -16,7 +16,9 @@ const translations = {
     copyLink: 'Copy Link',
     linkCopied: 'Link copied!',
     description: 'Description',
-    footer: 'Welcome to visit my personal website'
+    footer: 'Welcome to visit my personal website',
+    toggleEffectsOff: 'Disable All Effects',
+    toggleEffectsOn: 'Enable All Effects'
   },
   zh: {
     title: "xhc861's 微文件服务器",
@@ -33,7 +35,9 @@ const translations = {
     copyLink: '复制链接',
     linkCopied: '链接已复制！',
     description: '描述',
-    footer: '欢迎访问个人网站'
+    footer: '欢迎访问个人网站',
+    toggleEffectsOff: '关闭所有网页特效',
+    toggleEffectsOn: '开启所有网页特效'
   },
   ja: {
     title: 'xhc861 のマイクロファイルサーバー',
@@ -50,14 +54,16 @@ const translations = {
     copyLink: 'リンクをコピー',
     linkCopied: 'リンクをコピーしました！',
     description: '説明',
-    footer: '個人サイトへようこそ'
+    footer: '個人サイトへようこそ',
+    toggleEffectsOff: 'すべてのエフェクトを無効にする',
+    toggleEffectsOn: 'すべてのエフェクトを有効にする'
   }
 };
 
 // Inline SVG icons
 const icons = {
-  folder: '<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
-  file: '<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>'
+  folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
+  file: `<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
 };
 
 let currentLang = 'zh';
@@ -87,6 +93,13 @@ function setLanguage(lang) {
   });
   updateUI();
   loadDirectory(currentPath);
+  
+  // Update toggle effects button text
+  const toggleEffectsBtn = document.getElementById('toggleEffects');
+  if (toggleEffectsBtn) {
+    const isHidden = document.body.classList.contains('effects-hidden');
+    toggleEffectsBtn.textContent = isHidden ? t('toggleEffectsOn') : t('toggleEffectsOff');
+  }
 }
 
 function formatSize(bytes) {
@@ -167,12 +180,11 @@ function renderFiles(items) {
     const icon = item.isDirectory ? icons.folder : icons.file;
     
     if (item.isDirectory) {
-      // Display name with description in parentheses for folders
-      const displayName = item.description ? `${item.name} (${item.description})` : item.name;
+      // Display folder name with description below, same as files
       return `
         <div class="file-item" onclick="navigateTo('${path}')">
           <span class="file-icon">${icon}</span>
-          <span class="file-name">${displayName}</span>
+          <span class="file-name">${item.name}${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}</span>
           <span class="file-size">—</span>
           <span class="file-date"></span>
         </div>
@@ -296,11 +308,15 @@ function navigateTo(path) {
 }
 
 function downloadFile(path) {
-  window.location.href = `/api/download?path=${encodeURIComponent(path)}`;
+  // Encode only special characters, keep Chinese readable
+  const safePath = path.replace(/ /g, '%20').replace(/#/g, '%23').replace(/\?/g, '%3F');
+  window.location.href = `/api/download?path=${safePath}`;
 }
 
 function copyFileLink(path) {
-  const url = `${window.location.origin}/api/download?path=${encodeURIComponent(path)}`;
+  // Create URL with Chinese characters preserved
+  const safePath = path.replace(/ /g, '%20').replace(/#/g, '%23').replace(/\?/g, '%3F');
+  const url = `${window.location.origin}/api/download?path=${safePath}`;
   navigator.clipboard.writeText(url).then(() => {
     showToast(t('linkCopied'));
   }).catch(err => {
@@ -360,6 +376,20 @@ themeToggle.addEventListener('click', () => {
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme);
   localStorage.setItem('theme', newTheme);
+});
+
+// Toggle effects button
+const toggleEffectsBtn = document.getElementById('toggleEffects');
+const savedEffectsState = localStorage.getItem('effectsHidden');
+if (savedEffectsState === 'true') {
+  document.body.classList.add('effects-hidden');
+  toggleEffectsBtn.textContent = t('toggleEffectsOn');
+}
+
+toggleEffectsBtn.addEventListener('click', () => {
+  const isHidden = document.body.classList.toggle('effects-hidden');
+  localStorage.setItem('effectsHidden', isHidden);
+  toggleEffectsBtn.textContent = isHidden ? t('toggleEffectsOn') : t('toggleEffectsOff');
 });
 
 // Load effects configuration and initialize

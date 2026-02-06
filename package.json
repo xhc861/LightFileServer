@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-shards": "node scripts/generate-metadata-shards.js",
+    "test-shards": "node scripts/test-sharding.js",
+    "generate-metadata": "node scripts/generate-metadata.js",
+    "diagnose-metadata": "node scripts/diagnose-metadata.js",
+    "update-index": "node scripts/update-metadata-index.js"
   },
   "dependencies": {
     "express": "^4.18.2"

@@ -17,14 +17,34 @@ export default async function handler(req, res) {
   try {
     // For Vercel, files should be in the root public directory
     const STORAGE_DIR = join(process.cwd(), 'public', 'files');
+    const METADATA_INDEX = join(STORAGE_DIR, 'metadata-index.json');
     const METADATA_FILE = join(STORAGE_DIR, 'metadata.json');
 
-    // Load metadata
+    // Load metadata with sharding support
     let metadata = {};
     try {
-      if (existsSync(METADATA_FILE)) {
+      // Try to load sharded metadata first
+      if (existsSync(METADATA_INDEX)) {
+        const indexContent = readFileSync(METADATA_INDEX, 'utf-8');
+        const index = JSON.parse(indexContent);
+        
+        // Determine which shard to load based on current path
+        const shardKey = path || '';
+        const shardFile = index.shards[shardKey];
+        
+        if (shardFile) {
+          const shardPath = join(STORAGE_DIR, shardFile);
+          if (existsSync(shardPath)) {
+            const shardContent = readFileSync(shardPath, 'utf-8');
+            metadata = JSON.parse(shardContent);
+            console.log(`Loaded metadata shard: ${shardFile}`);
+          }
+        }
+      } else if (existsSync(METADATA_FILE)) {
+        // Fallback to monolithic metadata.json for backward compatibility
         const metadataContent = readFileSync(METADATA_FILE, 'utf-8');
         metadata = JSON.parse(metadataContent);
+        console.log('Loaded monolithic metadata.json');
       }
     } catch (err) {
       console.error('Failed to load metadata:', err);
@@ -38,11 +58,10 @@ export default async function handler(req, res) {
       return normalized;
     }
 
-    function getFileMetadata(fileName, relativePath) {
-      // Try to find metadata by relative path first, then by filename
-      const fullKey = relativePath ? `${relativePath}/${fileName}` : fileName;
-      console.log('Looking for metadata:', { fileName, relativePath, fullKey, found: metadata[fullKey] || metadata[fileName] });
-      return metadata[fullKey] || metadata[fileName] || {};
+    function getFileMetadata(fileName) {
+      // With sharded metadata, we only need to look up by filename
+      // since each shard contains only the metadata for its directory
+      return metadata[fileName] || {};
     }
 
     const fullPath = safePath(path);
@@ -63,11 +82,19 @@ export default async function handler(req, res) {
     }
 
     const items = readdirSync(fullPath)
-      .filter(name => name !== 'metadata.json') // Hide metadata file
+      .filter(name => {
+        // Hide all metadata-related files
+        if (name === 'metadata.json') return false;
+        if (name === 'metadata-index.json') return false;
+        if (name === 'metadata-root.json') return false;
+        if (name.startsWith('metadata-')) return false;
+        if (name.endsWith('.backup.json')) return false;
+        return true;
+      })
       .map(name => {
         const itemPath = join(fullPath, name);
         const itemStats = statSync(itemPath);
-        const fileMeta = getFileMetadata(name, path);
+        const fileMeta = getFileMetadata(name);
         
         // For folders, no time display needed
         // For files, ONLY use metadata time (no timezone conversion)

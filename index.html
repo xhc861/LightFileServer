@@ -396,6 +396,41 @@
     .toast.show {
       opacity: 1;
     }
+    
+    /* Toggle effects button */
+    .toggle-effects-btn {
+      margin-top: 20px;
+      padding: 10px 18px;
+      background: transparent;
+      color: var(--text-color);
+      border: 2px solid var(--text-color);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+    .toggle-effects-btn:hover {
+      background: var(--text-color);
+      color: var(--bg-color);
+      transform: translateY(-2px);
+    }
+    .effects-hidden .toggle-effects-btn {
+      border-color: #28a745;
+      color: #28a745;
+    }
+    .effects-hidden .toggle-effects-btn:hover {
+      background: #28a745;
+      color: white;
+    }
+    .effects-hidden #petalCanvas,
+    .effects-hidden .lanterns-container,
+    .effects-hidden .wiiuii_layout,
+    .effects-hidden .snowflakes {
+      display: none !important;
+    }
+    
     #petalCanvas {
       position: fixed;
       top: 0;
@@ -412,6 +447,7 @@
     .deng-box1{position:fixed;top:-30px;right:calc(50% - 360px);z-index:9999;pointer-events:none}
     .deng-box2{position:fixed;top:-40px;left:calc(50% - 240px);z-index:9999;pointer-events:none}
     .deng-box3{position:fixed;top:-30px;left:calc(50% - 360px);z-index:9999;pointer-events:none}
+    
     .deng-box1 .deng,.deng-box3 .deng{position:relative;width:120px;height:90px;margin:50px;background:#d8000f;background:rgba(255, 0, 0);border-radius:50% 50%;-webkit-transform-origin:50% -100px;-webkit-animation:swing 5s infinite ease-in-out;box-shadow:-5px 5px 30px 4px #fc903d}
     .deng{position:relative;width:120px;height:90px;margin:50px;background:#d8000f;background:rgba(255, 0, 0);border-radius:50% 50%;-webkit-transform-origin:50% -100px;-webkit-animation:swing 3s infinite ease-in-out;box-shadow:-5px 5px 50px 4px #fa6c00}
     .deng-a{width:100px;height:90px;background:#d8000f;background:rgba(216,0,15,.1);margin:12px 8px 8px 8px;border-radius:50% 50%;border:2px solid #dc8f03}
@@ -493,6 +529,8 @@
   <div class="footer">
     <p>&copy; 2026 xhc861. All rights reserved.</p>
     <p><span data-i18n="footer">欢迎访问个人网站</span> <a href="https://xhc861.top" target="_blank">(xhc861.top)</a></p>
+    <!-- <p style="font-size: 12px; color: #999; margin-top: 8px;">PGP.Fingerprint: 7f2e6241561d3c31ddc47f87e8710037bc12fc735e6798c963af1f4555b5fd6a</p> -->
+    <button class="toggle-effects-btn" id="toggleEffects">关闭所有网页特效</button>
   </div>
 
   <canvas id="petalCanvas"></canvas>

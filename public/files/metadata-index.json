@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "shards": {
+    "": "metadata-root.json",
+    "NB-crack": "NB-crack/metadata.json",
+    "VSL-Preset": "VSL-Preset/metadata.json",
+    "documents": "documents/metadata.json",
+    "midi": "midi/metadata.json",
+    "midi/animenzzz": "midi/animenzzz/metadata.json",
+    "midi/selected": "midi/selected/metadata.json",
+    "midi/personal": "midi/personal/metadata.json"
+  }
+}

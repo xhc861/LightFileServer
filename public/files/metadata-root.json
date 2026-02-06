@@ -1,0 +1,14 @@
+{
+  "NB-crack": {
+    "description": "NB实验室破解脚本"
+  },
+  "VSL-Preset": {
+    "description": "VSL音源预设文件"
+  },
+  "documents": {
+    "description": "文档合集"
+  },
+  "midi": {
+    "description": "midi音乐文件集"
+  }
+}
