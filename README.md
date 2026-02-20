@@ -15,12 +15,43 @@ A fast, lightweight file browsing and download server with internationalization 
 ## Setup
 
 1. Place your files in `public/files/` directory
-2. Install dependencies: `npm install`
-3. Run development server: `npm run dev` (starts both API and Vite)
+2. Install dependencies: `pnpm install`
+3. Run development server: `pnpm run dev` (starts Vite)
+4. Run API server: `pnpm run server` (for file browsing and admin panel)
 
-Or run separately:
-- API server: `npm run dev:api`
-- Vite dev server: `npm run dev:vite`
+## Admin Panel
+
+A web-based admin panel is available for managing files:
+
+### Access Admin Panel
+
+1. Start the server: `pnpm run server`
+2. Open browser: `http://localhost:3000/admin`
+3. Login with password (default: `admin123`)
+
+### Admin Features
+
+- 📤 Upload files (single or multiple)
+- 📁 Create folders
+- ✏️ Edit metadata.json files
+- 🗑️ Delete files and folders
+- 📝 Add file descriptions
+
+### Set Custom Password
+
+```bash
+# Windows PowerShell
+$env:ADMIN_PASSWORD="your_password"
+pnpm run server
+
+# Linux/Mac
+export ADMIN_PASSWORD=your_password
+pnpm run server
+```
+
+**Note:** Admin panel files are in `admin/` folder and excluded from Git.
+
+For detailed admin documentation, see [admin/README.md](admin/README.md)
 
 ## File Structure
 
@@ -65,25 +96,6 @@ Edit `public/files/metadata-root.json`:
   }
 }
 ```
-
-### Automatic Shard Generation
-
-If you have an existing `metadata.json` file, convert it to shards:
-
-```bash
-npm run generate-shards
-```
-
-### Testing Metadata
-
-Verify your metadata shards are working correctly:
-
-```bash
-npm run test-shards
-```
-
-For detailed documentation, see [docs/METADATA-SHARDING.md](docs/METADATA-SHARDING.md)
-
 ## Deploy to Vercel
 
 1. Push code to GitHub

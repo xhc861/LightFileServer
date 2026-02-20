@@ -1,5 +1,7 @@
 import { normalize, join } from 'path';
-import { existsSync, statSync, createReadStream } from 'fs';
+import { existsSync, statSync, createReadStream, readFileSync } from 'fs';
+
+
 
 export default async function handler(req, res) {
   // CORS headers
@@ -17,6 +19,8 @@ export default async function handler(req, res) {
   try {
     // For Vercel, files should be in the root public directory
     const STORAGE_DIR = join(process.cwd(), 'public', 'files');
+    const METADATA_INDEX = join(STORAGE_DIR, 'metadata-index.json');
+    const METADATA_FILE = join(STORAGE_DIR, 'metadata.json');
 
     function safePath(requestPath) {
       const normalized = normalize(join(STORAGE_DIR, requestPath || ''));
@@ -26,6 +30,45 @@ export default async function handler(req, res) {
       return normalized;
     }
 
+    // Parse path to get directory and filename
+    const pathParts = path.split('/');
+    const fileName = pathParts.pop();
+    const dirPath = pathParts.join('/');
+    
+    // Load metadata for the directory
+    let metadata = {};
+    try {
+      if (existsSync(METADATA_INDEX)) {
+        const indexContent = readFileSync(METADATA_INDEX, 'utf-8');
+        const index = JSON.parse(indexContent);
+        const shardFile = index.shards[dirPath || ''];
+        
+        if (shardFile) {
+          const shardPath = join(STORAGE_DIR, shardFile);
+          if (existsSync(shardPath)) {
+            const shardContent = readFileSync(shardPath, 'utf-8');
+            metadata = JSON.parse(shardContent);
+          }
+        }
+      } else if (existsSync(METADATA_FILE)) {
+        const metadataContent = readFileSync(METADATA_FILE, 'utf-8');
+        metadata = JSON.parse(metadataContent);
+      }
+    } catch (err) {
+      console.error('Failed to load metadata:', err);
+    }
+
+    // Check if this is a URL link
+    if (metadata[fileName] && metadata[fileName].type === 'url' && metadata[fileName].url) {
+      const originalUrl = metadata[fileName].url;
+      
+      // Redirect to the URL
+      res.writeHead(302, { Location: originalUrl });
+      res.end();
+      return;
+    }
+
+    // Otherwise, handle as a regular file download
     const fullPath = safePath(path);
     
     if (!existsSync(fullPath)) {
@@ -39,7 +82,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    const fileName = path.split('/').pop();
     const encodedFileName = encodeURIComponent(fileName);
     
     res.setHeader('Content-Type', 'application/octet-stream');

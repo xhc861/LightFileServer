@@ -7,3 +7,6 @@ docs
 backups/
 *.backup.json
 metadata.json.old
+# Admin panel
+admin/
+ADMIN-QUICKSTART.md

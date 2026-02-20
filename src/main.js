@@ -7,6 +7,7 @@ const translations = {
     'warning-text': 'This system is designed for small files only (JS, CSS, JSON, etc.). Large files may experience slow download speeds.',
     home: 'Home',
     download: 'Download',
+    goToDownload: 'Go to Download',
     empty: 'This folder is empty',
     fileName: 'File Name',
     fileSize: 'File Size',
@@ -26,6 +27,7 @@ const translations = {
     'warning-text': '本系统仅用于存储小文件（JS、CSS、JSON等）。大文件可能会导致下载速度变慢。',
     home: '首页',
     download: '下载',
+    goToDownload: '前往下载',
     empty: '此文件夹为空',
     fileName: '文件名',
     fileSize: '文件大小',
@@ -45,6 +47,7 @@ const translations = {
     'warning-text': 'このシステムは小さなファイル（JS、CSS、JSONなど）専用です。大きなファイルはダウンロード速度が遅くなる可能性があります。',
     home: 'ホーム',
     download: 'ダウンロード',
+    goToDownload: 'ダウンロードへ',
     empty: 'このフォルダは空です',
     fileName: 'ファイル名',
     fileSize: 'ファイルサイズ',
@@ -63,7 +66,8 @@ const translations = {
 // Inline SVG icons
 const icons = {
   folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-  file: `<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
+  file: `<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`,
+  link: `<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`
 };
 
 let currentLang = 'zh';
@@ -177,9 +181,9 @@ function renderFiles(items) {
   
   list.innerHTML = items.map((item, index) => {
     const path = currentPath ? `${currentPath}/${item.name}` : item.name;
-    const icon = item.isDirectory ? icons.folder : icons.file;
     
     if (item.isDirectory) {
+      const icon = icons.folder;
       // Display folder name with description below, same as files
       return `
         <div class="file-item" onclick="navigateTo('${path}')">
@@ -190,28 +194,64 @@ function renderFiles(items) {
         </div>
       `;
     } else {
+      // Determine icon based on type
+      const isUrl = item.type === 'url';
+      const icon = isUrl ? icons.link : icons.file;
+      const iconClass = isUrl ? 'link-icon' : '';
+      
       // Store item data in a global array to avoid JSON escaping issues
       if (!window.fileItems) window.fileItems = [];
       window.fileItems[index] = {
         name: item.name,
+        type: item.type || 'file',
         size: item.size,
+        fileSize: item.fileSize,
         modified: item.modified,
+        customModified: item.customModified,
         path: path,
-        description: item.description
+        description: item.description,
+        url: item.url,
+        password: item.password,
+        downloadSource: item.downloadSource
       };
       
-      return `
-        <div class="file-item" onclick="showFileModalByIndex(${index})">
-          <span class="file-icon">${icon}</span>
-          <span class="file-name">${item.name}${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}</span>
-          <span class="file-size">${formatSize(item.size)}</span>
-          <span class="file-date">${formatDate(item.modified)}</span>
-          <div class="file-actions">
-            <button class="copy-btn" onclick="copyFileLink('${path}'); event.stopPropagation();">${t('copyLink')}</button>
-            <button class="download-btn" onclick="downloadFile('${path}'); event.stopPropagation();">${t('download')}</button>
+      // Use custom modified time if available (as string), otherwise format file system time
+      const displayTime = item.customModified || formatDate(item.modified);
+      
+      console.log(`File ${item.name}: type=${item.type}, customModified=${item.customModified}, displayTime=${displayTime}`);
+      
+      // For URL links, show size and download source in one line below description
+      if (isUrl) {
+        const sizeText = item.fileSize ? formatSize(item.fileSize) : '';
+        const metadataLine = [sizeText, item.downloadSource].filter(x => x).join('  ');
+        
+        return `
+          <div class="file-item" onclick="showFileModalByIndex(${index})">
+            <span class="file-icon ${iconClass}">${icon}</span>
+            <span class="file-name">
+              ${item.name}
+              ${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}
+              ${metadataLine ? '<br><small style="color: #999; font-size: 11px;">' + metadataLine + '</small>' : ''}
+            </span>
+            <span class="file-size"></span>
+            <span class="file-date">${displayTime}</span>
           </div>
-        </div>
-      `;
+        `;
+      } else {
+        // For regular files, show normally
+        return `
+          <div class="file-item" onclick="showFileModalByIndex(${index})">
+            <span class="file-icon ${iconClass}">${icon}</span>
+            <span class="file-name">${item.name}${item.description ? '<br><small style="color: #999; font-size: 12px;">' + item.description + '</small>' : ''}</span>
+            <span class="file-size">${formatSize(item.size)}</span>
+            <span class="file-date">${displayTime}</span>
+            <div class="file-actions">
+              <button class="copy-btn" onclick="copyFileLink('${path}'); event.stopPropagation();">${t('copyLink')}</button>
+              <button class="download-btn" onclick="downloadFile('${path}'); event.stopPropagation();">${t('download')}</button>
+            </div>
+          </div>
+        `;
+      }
     }
   }).join('');
 }
@@ -222,7 +262,11 @@ function showFileModalByIndex(index) {
   }
 }
 
-async function calculateSHA256(path) {
+async function calculateSHA256(path, isUrl) {
+  if (isUrl) {
+    return 'N/A (URL Link)';
+  }
+  
   try {
     const response = await fetch(`/api/download?path=${encodeURIComponent(path)}`);
     const buffer = await response.arrayBuffer();
@@ -238,6 +282,8 @@ async function calculateSHA256(path) {
 
 function showFileModal(fileInfo) {
   currentFileForModal = fileInfo;
+  
+  const isUrl = fileInfo.type === 'url';
   
   document.getElementById('modalFileName').textContent = fileInfo.name;
   
@@ -256,32 +302,67 @@ function showFileModal(fileInfo) {
     </div>`;
   }
   
+  // Show original URL for link type
+  if (isUrl && fileInfo.url) {
+    infoHTML += `
+    <div class="info-row">
+      <div class="info-label">原始URL:</div>
+      <div class="info-value" style="word-break: break-all; max-height: 100px; overflow-y: auto;">
+        <a href="${fileInfo.url}" target="_blank" style="color: #007bff;">${fileInfo.url}</a>
+      </div>
+    </div>`;
+  }
+  
+  // Show password if available
+  if (isUrl && fileInfo.password) {
+    infoHTML += `
+    <div class="info-row">
+      <div class="info-label">访问密码:</div>
+      <div class="info-value">
+        <span style="font-family: monospace; background: var(--bg-secondary, #f5f5f5); color: var(--text-primary, #333); padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid var(--border-color, #ddd); margin-right: 8px;">${fileInfo.password}</span>
+        <button onclick="copyPassword('${fileInfo.password}'); event.stopPropagation();" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">复制密码</button>
+      </div>
+    </div>`;
+  }
+  
   infoHTML += `
     <div class="info-row">
       <div class="info-label">${t('fileSize')}:</div>
-      <div class="info-value">${formatSize(fileInfo.size)}</div>
+      <div class="info-value">${isUrl ? (fileInfo.fileSize ? formatSize(fileInfo.fileSize) : '—') : formatSize(fileInfo.size)}</div>
     </div>
     <div class="info-row">
       <div class="info-label">${t('modified')}:</div>
       <div class="info-value">${formatDate(fileInfo.modified)}</div>
-    </div>
+    </div>`;
+  
+  if (!isUrl) {
+    infoHTML += `
     <div class="info-row">
       <div class="info-label">${t('sha256')}:</div>
       <div class="info-value loading" id="sha256Value">${t('calculating')}</div>
-    </div>
-  `;
+    </div>`;
+  }
   
   document.getElementById('fileInfo').innerHTML = infoHTML;
+  
+  // Update download button text based on file type
+  const downloadBtn = document.querySelector('.modal-download-btn span');
+  if (downloadBtn) {
+    downloadBtn.textContent = isUrl ? t('goToDownload') : t('download');
+  }
+  
   document.getElementById('fileModal').classList.add('show');
   
-  // Calculate SHA256 asynchronously
-  calculateSHA256(fileInfo.path).then(hash => {
-    const sha256Element = document.getElementById('sha256Value');
-    if (sha256Element) {
-      sha256Element.textContent = hash;
-      sha256Element.classList.remove('loading');
-    }
-  });
+  // Calculate SHA256 asynchronously (only for files)
+  if (!isUrl) {
+    calculateSHA256(fileInfo.path, false).then(hash => {
+      const sha256Element = document.getElementById('sha256Value');
+      if (sha256Element) {
+        sha256Element.textContent = hash;
+        sha256Element.classList.remove('loading');
+      }
+    });
+  }
 }
 
 function closeModal() {
@@ -291,7 +372,15 @@ function closeModal() {
 
 function downloadFromModal() {
   if (currentFileForModal) {
-    downloadFile(currentFileForModal.path);
+    const isUrl = currentFileForModal.type === 'url';
+    
+    if (isUrl && currentFileForModal.url) {
+      // For URL links, open in new tab
+      window.open(currentFileForModal.url, '_blank');
+    } else {
+      // For regular files, download
+      downloadFile(currentFileForModal.path);
+    }
   }
 }
 
@@ -314,14 +403,39 @@ function downloadFile(path) {
 }
 
 function copyFileLink(path) {
-  // Create URL with Chinese characters preserved
-  const safePath = path.replace(/ /g, '%20').replace(/#/g, '%23').replace(/\?/g, '%3F');
-  const url = `${window.location.origin}/api/download?path=${safePath}`;
-  navigator.clipboard.writeText(url).then(() => {
-    showToast(t('linkCopied'));
+  // Get file info from global array
+  const fileInfo = window.fileItems.find(item => {
+    const itemPath = currentPath ? `${currentPath}/${item.name}` : item.name;
+    return itemPath === path;
+  });
+  
+  // If it's a URL link, copy the original URL
+  if (fileInfo && fileInfo.type === 'url') {
+    navigator.clipboard.writeText(fileInfo.url).then(() => {
+      showToast(t('linkCopied'));
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      showToast('Failed to copy link');
+    });
+  } else {
+    // For regular files, copy the download API URL
+    const safePath = path.replace(/ /g, '%20').replace(/#/g, '%23').replace(/\?/g, '%3F');
+    const url = `${window.location.origin}/api/download?path=${safePath}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast(t('linkCopied'));
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      showToast('Failed to copy link');
+    });
+  }
+}
+
+function copyPassword(password) {
+  navigator.clipboard.writeText(password).then(() => {
+    showToast('密码已复制！');
   }).catch(err => {
-    console.error('Failed to copy:', err);
-    showToast('Failed to copy link');
+    console.error('Failed to copy password:', err);
+    showToast('复制失败');
   });
 }
 
@@ -340,6 +454,8 @@ function copyFromModal() {
   }
 }
 
+
+
 // Event listeners
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
@@ -349,11 +465,13 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 window.navigateTo = navigateTo;
 window.downloadFile = downloadFile;
 window.copyFileLink = copyFileLink;
+window.copyPassword = copyPassword;
 window.showFileModal = showFileModal;
 window.showFileModalByIndex = showFileModalByIndex;
 window.closeModal = closeModal;
 window.downloadFromModal = downloadFromModal;
 window.copyFromModal = copyFromModal;
+
 
 // Initialize
 updateUI();

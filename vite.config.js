@@ -34,32 +34,34 @@ export default defineConfig({
             
             // Load metadata with sharding support
             const METADATA_INDEX = join(STORAGE_DIR, 'metadata-index.json');
-            const METADATA_FILE = join(STORAGE_DIR, 'metadata.json');
+            const METADATA_ROOT = join(STORAGE_DIR, 'metadata-root.json');
             let metadata = {};
+            let folderMetadata = {};
             
             try {
-              // Try to load sharded metadata first
-              if (fs.existsSync(METADATA_INDEX)) {
-                const indexContent = fs.readFileSync(METADATA_INDEX, 'utf-8');
-                const index = JSON.parse(indexContent);
+              // Load root metadata for folder descriptions
+              if (path === '' && fs.existsSync(METADATA_ROOT)) {
+                const rootContent = fs.readFileSync(METADATA_ROOT, 'utf-8');
+                folderMetadata = JSON.parse(rootContent);
+              }
+              
+              // Load local metadata.json for current directory
+              const localMetadata = join(fullPath, 'metadata.json');
+              if (fs.existsSync(localMetadata)) {
+                const localContent = fs.readFileSync(localMetadata, 'utf-8');
+                const localMeta = JSON.parse(localContent);
                 
-                // Determine which shard to load based on current path
-                const shardKey = path || '';
-                const shardFile = index.shards[shardKey];
-                
-                if (shardFile) {
-                  const shardPath = join(STORAGE_DIR, shardFile);
-                  if (fs.existsSync(shardPath)) {
-                    const shardContent = fs.readFileSync(shardPath, 'utf-8');
-                    metadata = JSON.parse(shardContent);
-                    console.log(`Loaded metadata shard: ${shardFile}`);
-                  }
+                // Support both formats
+                if (Array.isArray(localMeta.items)) {
+                  // New format: { items: [...] }
+                  localMeta.items.forEach(item => {
+                    metadata[item.name] = item;
+                  });
+                } else if (typeof localMeta === 'object') {
+                  // Old format: { "filename": { "description": "...", "modified": "..." } }
+                  metadata = localMeta;
                 }
-              } else if (fs.existsSync(METADATA_FILE)) {
-                // Fallback to monolithic metadata.json for backward compatibility
-                const metadataContent = fs.readFileSync(METADATA_FILE, 'utf-8');
-                metadata = JSON.parse(metadataContent);
-                console.log('Loaded monolithic metadata.json');
+                console.log(`Loaded local metadata for ${path || 'root'}`);
               }
             } catch (err) {
               console.error('Failed to load metadata:', err);
@@ -97,24 +99,56 @@ export default defineConfig({
               .map(name => {
                 const itemPath = join(fullPath, name);
                 const itemStats = fs.statSync(itemPath);
+                const isDirectory = itemStats.isDirectory();
                 const fileMeta = getFileMetadata(name);
                 
-                // For folders, no time display needed
-                // For files, ONLY use metadata time (no timezone conversion)
-                let modified = null;
-                if (!itemStats.isDirectory() && fileMeta.modified) {
-                  // Use the exact string from metadata without any conversion
-                  modified = fileMeta.modified;
+                let description = '';
+                let customModified = '';
+                let type = 'file';
+                let downloadSource = '';
+                
+                if (isDirectory && path === '' && folderMetadata[name]) {
+                  // Root level folder description
+                  description = folderMetadata[name].description || '';
+                } else if (fileMeta) {
+                  description = fileMeta.description || '';
+                  customModified = fileMeta.modified || '';
+                  type = fileMeta.type || 'file';
+                  downloadSource = fileMeta.downloadSource || '';
                 }
                 
                 return {
                   name,
-                  isDirectory: itemStats.isDirectory(),
+                  type,
+                  isDirectory,
                   size: itemStats.size,
-                  modified: modified,
-                  description: fileMeta.description || null
+                  modified: itemStats.mtime,
+                  customModified,
+                  description,
+                  downloadSource,
+                  fileSize: fileMeta.fileSize,
+                  password: fileMeta.password
                 };
               });
+
+            // Add URL links from metadata
+            for (const [key, value] of Object.entries(metadata)) {
+              if (value.type === 'url' && value.url) {
+                items.push({
+                  name: key,
+                  type: 'url',
+                  isDirectory: false,
+                  size: 0,
+                  fileSize: value.fileSize,
+                  modified: value.modified || null,
+                  customModified: value.modified || '',
+                  description: value.description || '',
+                  url: value.url,
+                  password: value.password,
+                  downloadSource: value.downloadSource || ''
+                });
+              }
+            }
 
             items.sort((a, b) => {
               if (a.isDirectory && !b.isDirectory) return -1;
@@ -138,6 +172,27 @@ export default defineConfig({
             
             console.log('Download request for:', path);
             
+            // Parse path to get directory and filename
+            const pathParts = path.split('/');
+            const fileName = pathParts.pop();
+            const dirPath = pathParts.join('/');
+            
+            // Check if this is a URL link
+            const dirFullPath = safePath(dirPath);
+            const metadataPath = join(dirFullPath, 'metadata.json');
+            if (fs.existsSync(metadataPath)) {
+              const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+              
+              if (metadata[fileName] && metadata[fileName].type === 'url' && metadata[fileName].url) {
+                // Redirect to the URL
+                res.statusCode = 302;
+                res.setHeader('Location', metadata[fileName].url);
+                res.end();
+                return;
+              }
+            }
+            
+            // Otherwise handle as regular file download
             const fullPath = safePath(path);
             
             if (!fs.existsSync(fullPath)) {
@@ -156,7 +211,6 @@ export default defineConfig({
               return;
             }
 
-            const fileName = path.split('/').pop();
             // Use encodeURIComponent for filename with special characters
             const encodedFileName = encodeURIComponent(fileName);
             

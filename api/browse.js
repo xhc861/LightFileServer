@@ -81,7 +81,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    const items = readdirSync(fullPath)
+    // First, get physical files and directories
+    const physicalItems = readdirSync(fullPath)
       .filter(name => {
         // Hide all metadata-related files
         if (name === 'metadata.json') return false;
@@ -106,12 +107,36 @@ export default async function handler(req, res) {
         
         return {
           name,
+          type: 'file',
           isDirectory: itemStats.isDirectory(),
           size: itemStats.size,
           modified: modified,
-          description: fileMeta.description || null
+          description: fileMeta.description || null,
+          password: fileMeta.password || null,
+          downloadSource: fileMeta.downloadSource || null
         };
       });
+
+    // Then, add URL links from metadata
+    const urlItems = [];
+    for (const [key, value] of Object.entries(metadata)) {
+      if (value.type === 'url' && value.url) {
+        urlItems.push({
+          name: key,
+          type: 'url',
+          isDirectory: false,
+          size: 0,
+          fileSize: value.fileSize || null,
+          modified: value.modified || null,
+          description: value.description || null,
+          url: value.url,
+          password: value.password || null,
+          downloadSource: value.downloadSource || null
+        });
+      }
+    }
+
+    const items = [...physicalItems, ...urlItems];
 
     items.sort((a, b) => {
       if (a.isDirectory && !b.isDirectory) return -1;

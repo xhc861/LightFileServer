@@ -10,5 +10,8 @@
   },
   "midi": {
     "description": "midi音乐文件集"
+  },
+  "Apps": {
+    "description": "各种软件，多平台"
   }
 }
