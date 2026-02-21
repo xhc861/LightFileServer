@@ -36,14 +36,41 @@ export default async function handler(req, res) {
           const shardPath = join(STORAGE_DIR, shardFile);
           if (existsSync(shardPath)) {
             const shardContent = readFileSync(shardPath, 'utf-8');
-            metadata = JSON.parse(shardContent);
+            const rawMetadata = JSON.parse(shardContent);
+            
+            // Handle both formats: direct object and items array
+            if (rawMetadata.items && Array.isArray(rawMetadata.items)) {
+              // Convert items array to object format
+              metadata = {};
+              rawMetadata.items.forEach(item => {
+                if (item.name) {
+                  metadata[item.name] = item;
+                }
+              });
+            } else {
+              metadata = rawMetadata;
+            }
+            
             console.log(`Loaded metadata shard: ${shardFile}`);
           }
         }
       } else if (existsSync(METADATA_FILE)) {
         // Fallback to monolithic metadata.json for backward compatibility
         const metadataContent = readFileSync(METADATA_FILE, 'utf-8');
-        metadata = JSON.parse(metadataContent);
+        const rawMetadata = JSON.parse(metadataContent);
+        
+        // Handle both formats here too
+        if (rawMetadata.items && Array.isArray(rawMetadata.items)) {
+          metadata = {};
+          rawMetadata.items.forEach(item => {
+            if (item.name) {
+              metadata[item.name] = item;
+            }
+          });
+        } else {
+          metadata = rawMetadata;
+        }
+        
         console.log('Loaded monolithic metadata.json');
       }
     } catch (err) {

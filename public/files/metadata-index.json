@@ -2,6 +2,7 @@
   "version": "1.0",
   "shards": {
     "": "metadata-root.json",
+    "Apps": "Apps/metadata.json",
     "NB-crack": "NB-crack/metadata.json",
     "VSL-Preset": "VSL-Preset/metadata.json",
     "documents": "documents/metadata.json",
