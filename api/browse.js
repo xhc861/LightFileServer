@@ -44,14 +44,15 @@ export default async function handler(req, res) {
               metadata = {};
               rawMetadata.items.forEach(item => {
                 if (item.name) {
-                  metadata[item.name] = item;
+                  // Preserve all properties from the item
+                  metadata[item.name] = { ...item };
                 }
               });
             } else {
               metadata = rawMetadata;
             }
             
-            console.log(`[Vercel] Loaded metadata shard: ${shardFile}, keys: ${Object.keys(metadata).join(', ')}`);
+            console.log(`[Vercel] Loaded metadata shard: ${shardFile}, keys: ${Object.keys(metadata).join(', ')}, metadata:`, JSON.stringify(metadata));
           } else {
             console.error(`[Vercel] Shard file not found: ${shardPath}`);
           }
@@ -68,7 +69,8 @@ export default async function handler(req, res) {
           metadata = {};
           rawMetadata.items.forEach(item => {
             if (item.name) {
-              metadata[item.name] = item;
+              // Preserve all properties from the item
+              metadata[item.name] = { ...item };
             }
           });
         } else {

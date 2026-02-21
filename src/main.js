@@ -215,10 +215,10 @@ function renderFiles(items) {
         downloadSource: item.downloadSource
       };
       
-      // Use custom modified time if available (as string), otherwise format file system time
-      const displayTime = item.customModified || formatDate(item.modified);
+      // Use modified time directly (already formatted as string in metadata)
+      const displayTime = item.modified || '—';
       
-      console.log(`File ${item.name}: type=${item.type}, customModified=${item.customModified}, displayTime=${displayTime}`);
+      console.log(`File ${item.name}: type=${item.type}, modified=${item.modified}, displayTime=${displayTime}`);
       
       // For URL links, show size and download source in one line below description
       if (isUrl) {
@@ -332,7 +332,7 @@ function showFileModal(fileInfo) {
     </div>
     <div class="info-row">
       <div class="info-label">${t('modified')}:</div>
-      <div class="info-value">${formatDate(fileInfo.modified)}</div>
+      <div class="info-value">${fileInfo.modified || '—'}</div>
     </div>`;
   
   if (!isUrl) {

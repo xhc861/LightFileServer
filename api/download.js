@@ -56,7 +56,8 @@ export default async function handler(req, res) {
               metadata = {};
               rawMetadata.items.forEach(item => {
                 if (item.name) {
-                  metadata[item.name] = item;
+                  // Preserve all properties from the item
+                  metadata[item.name] = { ...item };
                 }
               });
             } else {
@@ -76,7 +77,8 @@ export default async function handler(req, res) {
           metadata = {};
           rawMetadata.items.forEach(item => {
             if (item.name) {
-              metadata[item.name] = item;
+              // Preserve all properties from the item
+              metadata[item.name] = { ...item };
             }
           });
         } else {

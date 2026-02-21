@@ -1,6 +1,7 @@
 node_modules
 dist
 .vercel
+package-lock.json
 DEPLOYMENT_GUIDE.md
 docs
 # Metadata backups
