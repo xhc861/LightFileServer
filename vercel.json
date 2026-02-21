@@ -3,7 +3,7 @@
     "api/*.js": {
       "memory": 1024,
       "maxDuration": 10,
-      "includeFiles": "public/files/**"
+      "includeFiles": "public/files/**/*.{json,mid,js,pdf,vsynpreset,apk}"
     }
   },
   "outputDirectory": "dist",

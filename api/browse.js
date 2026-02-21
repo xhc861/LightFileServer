@@ -51,8 +51,12 @@ export default async function handler(req, res) {
               metadata = rawMetadata;
             }
             
-            console.log(`Loaded metadata shard: ${shardFile}`);
+            console.log(`[Vercel] Loaded metadata shard: ${shardFile}, keys: ${Object.keys(metadata).join(', ')}`);
+          } else {
+            console.error(`[Vercel] Shard file not found: ${shardPath}`);
           }
+        } else {
+          console.warn(`[Vercel] No shard found for path: "${shardKey}"`);
         }
       } else if (existsSync(METADATA_FILE)) {
         // Fallback to monolithic metadata.json for backward compatibility
@@ -71,10 +75,12 @@ export default async function handler(req, res) {
           metadata = rawMetadata;
         }
         
-        console.log('Loaded monolithic metadata.json');
+        console.log('[Vercel] Loaded monolithic metadata.json');
+      } else {
+        console.error(`[Vercel] No metadata files found. METADATA_INDEX: ${METADATA_INDEX}, METADATA_FILE: ${METADATA_FILE}`);
       }
     } catch (err) {
-      console.error('Failed to load metadata:', err);
+      console.error('[Vercel] Failed to load metadata:', err);
     }
 
     function safePath(requestPath) {
@@ -162,6 +168,8 @@ export default async function handler(req, res) {
         });
       }
     }
+    
+    console.log(`[Vercel] Found ${urlItems.length} URL items in metadata`);
 
     const items = [...physicalItems, ...urlItems];
 
