@@ -4,522 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>xhc861 's文件服务器</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    :root {
-      --bg-color: #f5f5f5;
-      --text-color: #333;
-      --card-bg: white;
-      --border-color: #e0e0e0;
-      --bg-secondary: #f5f5f5;
-      --text-primary: #333;
-      --hover-bg: #f8f9fa;
-      --footer-bg: #f5f5f5;
-    }
-    
-    [data-theme="dark"] {
-      --bg-color: #1a1a1a;
-      --text-color: #e0e0e0;
-      --card-bg: #2d2d2d;
-      --border-color: #404040;
-      --bg-secondary: #3a3a3a;
-      --text-primary: #e0e0e0;
-      --hover-bg: #3a3a3a;
-      --footer-bg: #1a1a1a;
-    }
-    
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg-color: #1a1a1a;
-        --text-color: #e0e0e0;
-        --card-bg: #2d2d2d;
-        --border-color: #404040;
-        --bg-secondary: #3a3a3a;
-        --text-primary: #e0e0e0;
-        --hover-bg: #3a3a3a;
-        --footer-bg: #1a1a1a;
-      }
-    }
-    
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
-      min-height: 100vh;
-    }
-    
-    /* 自定义滚动条样式 */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-      background: var(--bg-secondary, #f5f5f5);
-      border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-      background: var(--border-color, #ddd);
-      border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-    
-    /* Firefox 滚动条样式 */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--border-color, #ddd) var(--bg-secondary, #f5f5f5);
-    }
-    
-    .header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    h1 { 
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text-color);
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    .theme-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .theme-toggle:hover {
-      background: var(--hover-bg);
-    }
-    .theme-toggle svg {
-      stroke: var(--text-color);
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .theme-toggle .moon-icon {
-      display: none;
-    }
-    [data-theme="dark"] .theme-toggle .sun-icon {
-      display: none;
-    }
-    [data-theme="dark"] .theme-toggle .moon-icon {
-      display: block;
-    }
-    .theme-toggle .moon-icon path {
-      fill: var(--text-color);
-      stroke: none;
-    }
-    .lang-switch {
-      display: flex;
-      gap: 5px;
-    }
-    .lang-btn {
-      padding: 5px 10px;
-      border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      color: var(--text-color);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s;
-    }
-    .lang-btn:hover { background: var(--hover-bg); }
-    .lang-btn.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-    .warning {
-      background: #fff3cd;
-      border-left: 3px solid #ffc107;
-      padding: 10px 15px;
-      margin: 15px 20px;
-      font-size: 13px;
-      color: #856404;
-    }
-    [data-theme="dark"] .warning {
-      background: #3a3000;
-      color: #ffd700;
-      border-left-color: #ffa500;
-    }
-    .container { 
-      max-width: 1200px; 
-      margin: 0 auto;
-      padding: 20px;
-      padding-bottom: 60px;
-    }
-    .breadcrumb {
-      background: var(--card-bg);
-      padding: 12px 15px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .breadcrumb a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb span { color: #999; }
-    .file-list {
-      background: var(--card-bg);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .file-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 15px;
-      border-bottom: 1px solid var(--border-color);
-      transition: background 0.15s;
-      cursor: pointer;
-    }
-    .file-item:hover { background: var(--hover-bg); }
-    .file-item:last-child { border-bottom: none; }
-    .file-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    .file-icon svg {
-      width: 100%;
-      height: 100%;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      fill: none;
-    }
-    .file-item .file-icon {
-      color: #666;
-    }
-    .file-item:hover .file-icon {
-      color: #007bff;
-    }
-    .file-item .file-icon.link-icon {
-      color: #17a2b8;
-    }
-    .file-item:hover .file-icon.link-icon {
-      color: #138496;
-    }
-    @media (prefers-color-scheme: dark) {
-      .file-item .file-icon {
-        color: #999;
-      }
-      .file-item .file-icon.link-icon {
-        color: #5bc0de;
-      }
-    }
-    .file-name { 
-      flex: 1;
-      font-size: 14px;
-      color: var(--text-color);
-    }
-    .file-name a {
-      color: #333;
-      text-decoration: none;
-    }
-    .file-name a:hover { color: #007bff; }
-    .file-size {
-      color: #999;
-      font-size: 13px;
-      margin-right: 15px;
-      min-width: 80px;
-      text-align: right;
-    }
-    .file-date {
-      color: #999;
-      font-size: 13px;
-      min-width: 150px;
-    }
-    .download-btn {
-      padding: 5px 12px;
-      font-size: 12px;
-      border-radius: 3px;
-      border: 1px solid #007bff;
-      background: white;
-      color: #007bff;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      background: #007bff;
-      color: white;
-    }
-    .copy-btn {
-      padding: 5px 12px;
-      font-size: 12px;
-      border-radius: 3px;
-      border: 1px solid #28a745;
-      background: white;
-      color: #28a745;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-right: 8px;
-    }
-    .copy-btn:hover {
-      background: #28a745;
-      color: white;
-    }
-    .file-actions {
-      display: flex;
-      gap: 0;
-    }
-    .empty {
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal.show {
-      display: flex;
-    }
-    .modal-content {
-      background: var(--card-bg);
-      border-radius: 8px;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .modal-header h2 {
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--text-color);
-      margin: 0;
-      word-break: break-all;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #999;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .modal-close:hover {
-      color: #333;
-    }
-    .file-info {
-      margin-bottom: 20px;
-    }
-    .info-row {
-      display: flex;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .info-row:last-child {
-      border-bottom: none;
-    }
-    .info-label {
-      font-weight: 500;
-      color: #666;
-      min-width: 100px;
-      flex-shrink: 0;
-    }
-    .info-value {
-      color: var(--text-color);
-      word-break: break-all;
-      flex: 1;
-    }
-    .info-value.loading {
-      color: #999;
-      font-style: italic;
-    }
-    .modal-download-btn {
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .modal-download-btn:hover {
-      background: #0056b3;
-    }
-    .modal-copy-btn {
-      width: 100%;
-      padding: 12px;
-      background: white;
-      color: #28a745;
-      border: 1px solid #28a745;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 10px;
-    }
-    .modal-copy-btn:hover {
-      background: #28a745;
-      color: white;
-    }
-    .footer {
-      text-align: center;
-      padding: 30px 20px;
-      color: #999;
-      font-size: 13px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
-    }
-    .footer a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    .footer a:hover {
-      text-decoration: underline;
-    }
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #28a745;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      z-index: 2000;
-    }
-    .toast.show {
-      opacity: 1;
-    }
-    
-    /* Toggle effects button */
-    .toggle-effects-btn {
-      margin-top: 20px;
-      padding: 10px 18px;
-      background: transparent;
-      color: var(--text-color);
-      border: 2px solid var(--text-color);
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      backdrop-filter: blur(10px);
-    }
-    .toggle-effects-btn:hover {
-      background: var(--text-color);
-      color: var(--bg-color);
-      transform: translateY(-2px);
-    }
-    .effects-hidden .toggle-effects-btn {
-      border-color: #28a745;
-      color: #28a745;
-    }
-    .effects-hidden .toggle-effects-btn:hover {
-      background: #28a745;
-      color: white;
-    }
-    .effects-hidden #petalCanvas,
-    .effects-hidden .lanterns-container,
-    .effects-hidden .wiiuii_layout,
-    .effects-hidden .snowflakes {
-      display: none !important;
-    }
-    
-    #petalCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 9999;
-    }
-    
-    /* Lantern styles */
-    .lanterns-container { pointer-events: none; }
-    .deng-box{position:fixed;top:-40px;right:calc(50% - 240px);z-index:9999;pointer-events:none;}
-    .deng-box1{position:fixed;top:-30px;right:calc(50% - 360px);z-index:9999;pointer-events:none}
-    .deng-box2{position:fixed;top:-40px;left:calc(50% - 240px);z-index:9999;pointer-events:none}
-    .deng-box3{position:fixed;top:-30px;left:calc(50% - 360px);z-index:9999;pointer-events:none}
-    
-    .deng-box1 .deng,.deng-box3 .deng{position:relative;width:120px;height:90px;margin:50px;background:#d8000f;background:rgba(255, 0, 0);border-radius:50% 50%;-webkit-transform-origin:50% -100px;-webkit-animation:swing 5s infinite ease-in-out;box-shadow:-5px 5px 30px 4px #fc903d}
-    .deng{position:relative;width:120px;height:90px;margin:50px;background:#d8000f;background:rgba(255, 0, 0);border-radius:50% 50%;-webkit-transform-origin:50% -100px;-webkit-animation:swing 3s infinite ease-in-out;box-shadow:-5px 5px 50px 4px #fa6c00}
-    .deng-a{width:100px;height:90px;background:#d8000f;background:rgba(216,0,15,.1);margin:12px 8px 8px 8px;border-radius:50% 50%;border:2px solid #dc8f03}
-    .deng-b{width:45px;height:90px;background:#d8000f;background:rgba(216,0,15,.1);margin:-4px 8px 8px 26px;border-radius:50% 50%;border:2px solid #dc8f03}
-    .xian{position:absolute;top:-20px;left:60px;width:2px;height:20px;background:#dc8f03}
-    .shui-a{position:relative;width:5px;height:20px;margin:-5px 0 0 59px;-webkit-animation:swing 4s infinite ease-in-out;-webkit-transform-origin:50% -45px;background:orange;border-radius:0 0 5px 5px}
-    .shui-b{position:absolute;top:14px;left:-2px;width:10px;height:10px;background:#dc8f03;border-radius:50%}
-    .shui-c{position:absolute;top:18px;left:-2px;width:10px;height:35px;background:orange;border-radius:0 0 0 5px}
-    .deng:before{position:absolute;top:-7px;left:29px;height:12px;width:60px;content:" ";display:block;z-index:999;border-radius:5px 5px 0 0;border:solid 1px #dc8f03;background:orange;background:linear-gradient(to right,#dc8f03,orange,#dc8f03,orange,#dc8f03)}
-    .deng:after{position:absolute;bottom:-7px;left:10px;height:12px;width:60px;content:" ";display:block;margin-left:20px;border-radius:0 0 5px 5px;border:solid 1px #dc8f03;background:orange;background:linear-gradient(to right,#dc8f03,orange,#dc8f03,orange,#dc8f03)}
-    .deng-t{font-family:黑体,Arial,Lucida Grande,Tahoma,sans-serif;font-size:3.2rem;color:#ffeb3be6;font-weight:700;line-height:85px;text-align:center}
-    @-webkit-keyframes swing{0%{-webkit-transform:rotate(-10deg)}50%{-webkit-transform:rotate(10deg)}100%{-webkit-transform:rotate(-10deg)}}
-    @media (max-width:640px){.deng-box,.deng-box1,.deng-box2,.deng-box3{display:none}}
-    
-    /* Wave styles */
-    .parallax > use{animation: move-forever 12s linear infinite;}
-    .parallax > use:nth-child(1){animation-delay: -2s;}
-    .parallax > use:nth-child(2){animation-delay: -2s; animation-duration: 5s;}
-    .parallax > use:nth-child(3){animation-delay: -4s; animation-duration: 3s;}
-    @keyframes move-forever{0%{transform: translate(-90px, 0%);} 100%{transform: translate(85px, 0%);}}
-    .wiiuii_layout{width: 100%;height: 40px;position: fixed;bottom: 0;left: 0;overflow: hidden;z-index: -1;}
-    .editorial{display: block; width: 100%; height: 40px; margin: 0;}
-  </style>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f7df4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/%3E%3C/svg%3E">
 </head>
 <body>
   <div class="header">
     <h1 data-i18n="title">File Server</h1>
     <div class="header-actions">
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20">
+        <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
           <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -530,7 +22,7 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
-        <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20">
+        <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
       </button>
@@ -546,38 +38,52 @@
     <strong data-i18n="warning-title">Notice:</strong>
     <span data-i18n="warning-text">This system is designed for small files only (JS, CSS, JSON, etc.). Large files may experience slow download speeds.</span>
   </div>
-  
-  <div class="container">
-    <div class="breadcrumb" id="breadcrumb"></div>
-    
-    <div class="file-list" id="filesList"></div>
 
-  <div class="modal" id="fileModal">
+  <div class="container">
+    <div class="toolbar">
+      <nav class="breadcrumb" id="breadcrumb" aria-label="breadcrumb"></nav>
+      <div class="search" id="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+        </svg>
+        <input type="search" id="searchInput" autocomplete="off" spellcheck="false"
+               data-i18n-placeholder="searchPlaceholder" placeholder="搜索所有文件…"
+               aria-label="搜索所有文件">
+        <button class="search-clear" id="searchClear" aria-label="清除搜索">&times;</button>
+      </div>
+    </div>
+
+    <div class="file-list" id="filesList"></div>
+  </div>
+
+  <div class="modal" id="fileModal" role="dialog" aria-modal="true" aria-labelledby="modalFileName">
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="modalFileName"></h2>
-        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
       </div>
       <div class="file-info" id="fileInfo"></div>
-      <button class="modal-copy-btn" onclick="copyFromModal()">
-        <span data-i18n="copyLink">复制链接</span>
-      </button>
-      <button class="modal-download-btn" onclick="downloadFromModal()">
-        <span data-i18n="download">下载</span>
-      </button>
+      <div class="modal-actions">
+        <button class="btn-block btn-secondary" id="modalCopyBtn">
+          <span data-i18n="copyLink">复制链接</span>
+        </button>
+        <button class="btn-block btn-primary" id="modalDownloadBtn">
+          <span data-i18n="download">下载</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <div class="footer">
     <p>&copy; 2026 xhc861. All rights reserved.</p>
-    <p><span data-i18n="footer">欢迎访问个人网站</span> <a href="https://xhc861.top" target="_blank">(xhc861.top)</a></p>
-    <!-- <p style="font-size: 12px; color: #999; margin-top: 8px;">PGP.Fingerprint: 7f2e6241561d3c31ddc47f87e8710037bc12fc735e6798c963af1f4555b5fd6a</p> -->
+    <p><span data-i18n="footer">欢迎访问个人网站</span> <a href="https://xhc861.top" target="_blank" rel="noopener">(xhc861.top)</a></p>
     <button class="toggle-effects-btn" id="toggleEffects">关闭所有网页特效</button>
   </div>
 
   <canvas id="petalCanvas"></canvas>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="/src/main.js"></script>
 </body>

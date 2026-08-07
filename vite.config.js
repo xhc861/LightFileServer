@@ -1,12 +1,32 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'url';
 import { dirname, join, normalize } from 'path';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const STORAGE_DIR = join(__dirname, 'public', 'files');
+const MANIFEST_FILE = join(STORAGE_DIR, 'manifest.json');
+const GENERATOR = join(__dirname, 'scripts', 'generate-manifest.js');
+
+/** 跑一次构建期清单生成器，避免在这里重复实现同一套合并逻辑 */
+function generateManifest() {
+  try {
+    execFileSync(process.execPath, [GENERATOR], { stdio: 'inherit' });
+  } catch (err) {
+    console.error('生成 manifest.json 失败:', err.message);
+  }
+}
+
+function readBuildId() {
+  try {
+    return JSON.parse(fs.readFileSync(MANIFEST_FILE, 'utf-8')).buildId || '';
+  } catch {
+    return '';
+  }
+}
 
 // Ensure storage directory exists
 if (!fs.existsSync(STORAGE_DIR)) {
@@ -21,11 +41,29 @@ function safePath(requestPath) {
   return normalized;
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => {
+  // 构建时 prebuild 已经跑过生成器；dev 时这里补一次，保证本地与线上同源
+  if (command === 'serve') generateManifest();
+
+  return {
+  // 内容不变则 buildId 不变，manifest 的 URL 可以长期 immutable 缓存。
+  // dev 下留空，避免热更新后拿到浏览器缓存的旧清单。
+  define: {
+    __BUILD_ID__: JSON.stringify(command === 'build' ? readBuildId() : '')
+  },
   plugins: [
     {
       name: 'file-server-api',
       configureServer(server) {
+        // public/files 变动后重新生成清单（新增文件、改描述都会即时生效）
+        server.watcher.add(STORAGE_DIR);
+        server.watcher.on('all', (_event, file) => {
+          if (!file.startsWith(STORAGE_DIR)) return;
+          if (file === MANIFEST_FILE) return;
+          generateManifest();
+          server.ws.send({ type: 'full-reload' });
+        });
+
         server.middlewares.use('/api/browse', (req, res) => {
           try {
             const url = new URL(req.url, `http://${req.headers.host}`);
@@ -89,6 +127,7 @@ export default defineConfig({
             const items = fs.readdirSync(fullPath)
               .filter(name => {
                 // Hide all metadata-related files
+                if (name === 'manifest.json') return false;
                 if (name === 'metadata.json') return false;
                 if (name === 'metadata-index.json') return false;
                 if (name === 'metadata-root.json') return false;
@@ -241,4 +280,5 @@ export default defineConfig({
       }
     }
   ]
+  };
 });

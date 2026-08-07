@@ -14,7 +14,8 @@
     "diagnose-metadata": "node scripts/diagnose-metadata.js",
     "update-index": "node scripts/update-metadata-index.js",
     "validate-metadata": "node scripts/validate-metadata.js",
-    "prebuild": "node scripts/validate-metadata.js"
+    "generate-manifest": "node scripts/generate-manifest.js",
+    "prebuild": "node scripts/validate-metadata.js && node scripts/generate-manifest.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

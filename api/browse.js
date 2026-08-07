@@ -120,6 +120,7 @@ export default async function handler(req, res) {
     const physicalItems = readdirSync(fullPath)
       .filter(name => {
         // Hide all metadata-related files
+        if (name === 'manifest.json') return false;
         if (name === 'metadata.json') return false;
         if (name === 'metadata-index.json') return false;
         if (name === 'metadata-root.json') return false;

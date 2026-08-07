@@ -3,10 +3,24 @@
     "api/*.js": {
       "memory": 1024,
       "maxDuration": 10,
-      "includeFiles": "public/files/**/*.{json,mid,js,pdf,vsynpreset,apk}"
+      "includeFiles": "public/files/**/*.json"
     }
   },
   "outputDirectory": "dist",
   "buildCommand": "npm run build",
-  "framework": "vite"
+  "framework": "vite",
+  "headers": [
+    {
+      "source": "/files/manifest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/files/(.*)",
+      "headers": [
+        { "key": "Content-Disposition", "value": "attachment" }
+      ]
+    }
+  ]
 }
